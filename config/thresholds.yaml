@@ -1,0 +1,14 @@
+# スクリーニング閾値設定
+japan:
+  max_per: 20          # PERの上限
+  max_pbr: 2.0         # PBRの上限
+  min_dividend: 0.0    # 最低配当利回り（%）
+  min_market_cap: 10000000000  # 最低時価総額（100億円）
+
+# バリュースコアの配点（合計100点）
+scoring:
+  per_weight: 25
+  pbr_weight: 25
+  dividend_weight: 20
+  roe_weight: 15
+  revenue_growth_weight: 15

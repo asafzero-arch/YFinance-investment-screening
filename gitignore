@@ -1,0 +1,25 @@
+# キャッシュフォルダ
+cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 結果ファイル
+results/
+
+# テストファイル
+test_*.py
+
+# 環境設定
+.env
+venv/
+env/
+
+# IDE設定
+.vscode/
+.idea/
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
