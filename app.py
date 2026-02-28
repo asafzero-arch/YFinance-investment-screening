@@ -8,63 +8,67 @@ from core.stock_lookup import search_ticker
 from core.stock_detail import get_stock_details, format_currency, format_percentage
 
 st.set_page_config(
-    page_title="東証割安株スクリーニング",
+    page_title="日本株スクリーニング",
     page_icon="📊",
     layout="wide"
 )
 
-st.title("📊 東証割安株スクリーニング")
+st.title("📊 日本株スクリーニング")
 
 # タブ作成
 tab1, tab2 = st.tabs(["🔍 スクリーニング", "📈 個別株検索"])
 
 # ==================== タブ1: スクリーニング ====================
 with tab1:
-    st.markdown("yfinanceを使った日本株の割安銘柄検索ツール")
-
-    # サイドバーで設定
-    st.sidebar.header("スクリーニング設定")
-
-    preset = st.sidebar.selectbox(
-        "スクリーニング種類",
-        options=["value", "high-dividend", "growth"],
-        format_func=lambda x: {
-            "value": "💰 割安株（バリュー）",
-            "high-dividend": "💵 高配当",
-            "growth": "📈 成長株"
-        }[x]
-    )
-
-    market = st.sidebar.selectbox(
-        "対象市場",
-        options=["prime", "standard", "growth", "all"],
-        format_func=lambda x: {
-            "prime": "プライム市場",
-            "standard": "スタンダード市場",
-            "growth": "グロース市場",
-            "all": "全市場"
-        }[x]
-    )
-
-    limit = st.sidebar.number_input(
-        "表示件数",
-        min_value=5,
-        max_value=50,
-        value=10,
-        step=5
-    )
-
-    max_scan = st.sidebar.number_input(
-        "スキャン件数",
-        min_value=50,
-        max_value=500,
-        value=100,
-        step=50,
-        help="この件数まで銘柄をチェックします。多いほど時間がかかります。"
-    )
-
+    st.markdown("yfinanceデータに基づく個別株検索＆スコアリングツール")
+    
+    # 設定をタブ内に配置（4列レイアウト）
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        preset = st.selectbox(
+            "スクリーニング種類",
+            options=["value", "high-dividend", "growth"],
+            format_func=lambda x: {
+                "value": "💰 割安株（バリュー）",
+                "high-dividend": "💵 高配当",
+                "growth": "📈 成長株"
+            }[x]
+        )
+    
+    with col2:
+        market = st.selectbox(
+            "対象市場",
+            options=["prime", "standard", "growth", "all"],
+            format_func=lambda x: {
+                "prime": "プライム市場",
+                "standard": "スタンダード市場",
+                "growth": "グロース市場",
+                "all": "全市場"
+            }[x]
+        )
+    
+    with col3:
+        limit = st.number_input(
+            "表示件数",
+            min_value=5,
+            max_value=50,
+            value=10,
+            step=5
+        )
+    
+    with col4:
+        max_scan = st.number_input(
+            "スキャン件数",
+            min_value=50,
+            max_value=500,
+            value=100,
+            step=50,
+            help="この件数まで銘柄をチェックします。多いほど時間がかかります。"
+        )
+    
     # 実行ボタン
-    if st.sidebar.button("🔍 スクリーニング実行", type="primary"):
+    if st.button("🔍 スクリーニング実行", type="primary", use_container_width=True):
         with st.spinner(f'{max_scan}件の銘柄をスキャン中...'):
             results = run_screening(
                 preset=preset,
@@ -217,5 +221,5 @@ with tab2:
 
 # フッター
 st.markdown("---")
-st.caption("⚠️ このツールの結果は投資助言ではありません。投資は自己責任で行ってください。")
+st.caption("⚠️ このアプリに基づいて損失出しても責めないでね。。")
 st.caption("データソース: yfinance (Yahoo Finance)")
