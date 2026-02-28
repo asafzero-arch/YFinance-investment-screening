@@ -6,6 +6,7 @@ sys.path.insert(0, '.')
 from core.screener import run_screening
 from core.stock_lookup import search_ticker
 from core.stock_detail import get_stock_details, format_currency, format_percentage
+from core.watchlist_manager import add_to_watchlist, get_watchlist, remove_from_watchlist, get_user_id
 
 st.set_page_config(
     page_title="日本株スクリーニング",
@@ -15,8 +16,13 @@ st.set_page_config(
 
 st.title("📊 日本株スクリーニング")
 
+# ユーザーID表示（デバッグ用）
+with st.sidebar:
+    st.caption(f"あなたのID: `{get_user_id()}`")
+    st.caption("このIDでウォッチリストが管理されます")
+
 # タブ作成
-tab1, tab2 = st.tabs(["🔍 スクリーニング", "📈 個別株検索"])
+tab1, tab2, tab3 = st.tabs(["🔍 スクリーニング", "📈 個別株検索", "⭐ ウォッチリスト"])
 
 # ==================== タブ1: スクリーニング ====================
 with tab1:
@@ -163,6 +169,25 @@ with tab2:
             with st.spinner("詳細情報を取得中..."):
                 details = get_stock_details(ticker)
             
+            # ウォッチリスト追加ボタン
+            col1, col2 = st.columns([3, 1])
+            with col2:
+                memo = st.text_input("メモ（任意）", key=f"memo_{ticker}")
+                if st.button("⭐ ウォッチリストに追加", key=f"add_{ticker}"):
+                    success, message = add_to_watchlist(
+                        ticker=ticker,
+                        company_name=name,
+                        score=details['score'],
+                        pbr=details['financial_metrics']['pbr'],
+                        per=details['financial_metrics']['per'],
+                        dividend=details['financial_metrics']['dividend_yield'],
+                        memo=memo
+                    )
+                    if success:
+                        st.success(message)
+                    else:
+                        st.warning(message)
+            
             # 基本情報とスコア
             col1, col2, col3, col4 = st.columns(4)
             with col1:
@@ -218,6 +243,41 @@ with tab2:
             for ticker, name in results:
                 if st.button(f"{name} ({ticker})", key=ticker):
                     st.rerun()
+
+# ==================== タブ3: ウォッチリスト ====================
+with tab3:
+    st.markdown("あなたのウォッチリスト")
+    
+    # ウォッチリスト取得
+    watchlist = get_watchlist()
+    
+    if watchlist.empty:
+        st.info("ウォッチリストは空です。個別株検索から銘柄を追加してください。")
+    else:
+        st.success(f"📌 {len(watchlist)} 件の銘柄を監視中")
+        
+        # 表示用に整形
+        display_columns = ['ticker', 'company_name', 'score', 'per', 'pbr', 'dividend', 'added_date', 'memo']
+        display_df = watchlist[display_columns].copy()
+        display_df.columns = ['ティッカー', '会社名', 'スコア', 'PER', 'PBR', '配当利回り', '登録日時', 'メモ']
+        
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        
+        # 削除機能
+        st.subheader("🗑️ 銘柄の削除")
+        ticker_to_remove = st.selectbox(
+            "削除する銘柄を選択",
+            options=watchlist['ticker'].tolist(),
+            format_func=lambda x: f"{watchlist[watchlist['ticker']==x]['company_name'].values[0]} ({x})"
+        )
+        
+        if st.button("削除", type="secondary"):
+            success, message = remove_from_watchlist(ticker_to_remove)
+            if success:
+                st.success(message)
+                st.rerun()
+            else:
+                st.error(message)
 
 # フッター
 st.markdown("---")
