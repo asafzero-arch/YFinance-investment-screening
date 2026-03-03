@@ -1,9 +1,12 @@
+import os
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 from core.data_fetcher import fetch_stock_info
 from core.scorer import calc_value_score
 import yaml
+
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_stock_details(ticker: str) -> dict:
@@ -23,7 +26,7 @@ def get_stock_details(ticker: str) -> dict:
     info = fetch_stock_info(ticker)
     
     # スコア計算
-    with open('config/thresholds.yaml', encoding='utf-8') as f:
+    with open(os.path.join(_BASE_DIR, 'config', 'thresholds.yaml'), encoding='utf-8') as f:
         config = yaml.safe_load(f)
     weights = config['scoring']
     score = calc_value_score(info, weights)
@@ -71,6 +74,9 @@ def get_stock_details(ticker: str) -> dict:
         if len(dividend_history) > 0:
             # 過去5年分に絞る
             five_years_ago = datetime.now() - timedelta(days=365*5)
+            # タイムゾーン対応: indexがtz-awareならtz-awareで比較
+            if dividend_history.index.tz is not None:
+                five_years_ago = pd.Timestamp(five_years_ago, tz=dividend_history.index.tz)
             dividend_history = dividend_history[dividend_history.index >= five_years_ago]
     except Exception as e:
         print(f"[エラー] 配当履歴取得失敗: {e}")

@@ -1,12 +1,15 @@
+import os
 import yaml
 import time
 from core.data_fetcher import fetch_stock_info
 from core.scorer import calc_value_score
 from core.tse_tickers import fetch_tse_tickers
 
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def load_config() -> dict:
-    with open('config/thresholds.yaml', encoding='utf-8') as f:
+    with open(os.path.join(_BASE_DIR, 'config', 'thresholds.yaml'), encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 
